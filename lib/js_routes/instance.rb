@@ -25,8 +25,14 @@ module JsRoutes
     def generate
       # Ensure routes are loaded. If they're not, load them.
       application = T.unsafe(self.application)
-      if named_routes.empty? && application.respond_to?(:reload_routes!, true)
-        application.reload_routes!
+      if named_routes.empty?
+        rails8_or_newer = Gem::Version.new(Rails.version) >= Gem::Version.new('8')
+
+        if rails8_or_newer
+          application.reload_routes_unless_loaded
+        elsif application.respond_to?(:reload_routes!, true)
+          application.reload_routes!
+        end
       end
       content = File.read(@configuration.source_file)
 
